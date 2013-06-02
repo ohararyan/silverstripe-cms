@@ -7,23 +7,11 @@
  * @todo Test canCreate()
  */
 class SiteTreePermissionsTest extends FunctionalTest {
-	static $fixture_file = "SiteTreePermissionsTest.yml";
+	protected static $fixture_file = "SiteTreePermissionsTest.yml";
 	
 	protected $illegalExtensions = array(
 		'SiteTree' => array('SiteTreeSubsites')
 	);
-	
-	static public function set_up_once() {
-		SiteTreeTest::set_up_once();
-
-		parent::set_up_once();
-	}
-	
-	static public function tear_down_once() {
-		SiteTreeTest::tear_down_once();
-		
-		parent::tear_down_once();
-	}
 	
 	public function setUp() {
 		parent::setUp();
@@ -54,7 +42,10 @@ class SiteTreePermissionsTest extends FunctionalTest {
 		// should be prompted for a login
 		$response = $this->get($page->URLSegment . '?stage=Stage');
 		$this->assertEquals($response->getStatusCode(), '302');
-		$this->assertContains('Security/login', $response->getHeader('Location'));
+		$this->assertContains(
+			Config::inst()->get('Security', 'login_url'), 
+			$response->getHeader('Location')
+		);
 		
 		$this->logInWithPermission('ADMIN');
 		

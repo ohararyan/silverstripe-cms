@@ -4,20 +4,8 @@
  * @subpackage tests
  */
 class SiteTreeBrokenLinksTest extends SapphireTest {
-	static $fixture_file = 'SiteTreeBrokenLinksTest.yml';
+	protected static $fixture_file = 'SiteTreeBrokenLinksTest.yml';
 	
-	static public function set_up_once() {
-		SiteTreeTest::set_up_once();
-
-		parent::set_up_once();
-	}
-	
-	static public function tear_down_once() {
-		SiteTreeTest::tear_down_once();
-		
-		parent::tear_down_once();
-	}
-
 	public function testBrokenLinksBetweenPages() {
 		$obj = $this->objFromFixture('Page','content');
 		

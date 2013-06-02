@@ -80,6 +80,8 @@ en:
     DELETE: 'Delete draft'
     DELETEFP: Delete
     DESCREMOVED: 'and {count} descendants'
+    DUPLICATED: 'Duplicated ''{title}'' successfully'
+    DUPLICATEDWITHCHILDREN: 'Duplicated ''{title}'' and children successfully'
     EMAIL: Email
     EditTree: 'Edit Tree'
     ListFiltered: 'Filtered list.'
@@ -99,8 +101,8 @@ en:
     RESTORE: Restore
     RESTORED: 'Restored ''{title}'' successfully'
     ROLLBACK: 'Roll back to this version'
-    ROLLEDBACKPUB: 'Rolled back to published version. New version number is #{version}'
-    ROLLEDBACKVERSION: 'Rolled back to version #%d.  New version number is #%d'
+    ROLLEDBACKPUBv2: 'Rolled back to published version.'
+    ROLLEDBACKVERSIONv2: 'Rolled back to version #%d.'
     SAVE: Save
     SAVEDRAFT: 'Save Draft'
     TabContent: Content
@@ -393,9 +395,9 @@ en:
     CANACCESS: 'You can access the archived site at this link:'
     HAVEASKED: 'You have asked to view the content of our site on'
   VirtualPage:
-    CHOOSE: 'Choose a page to link to'
+    CHOOSE: 'Linked Page'
     DESCRIPTION: 'Displays the content of another page'
-    EDITCONTENT: 'click here to edit the content'
+    EDITCONTENT: 'Edit content on linked page'
     HEADER: 'This is a virtual page'
     PLURALNAME: 'Virtual Pags'
     PageTypNotAllowedOnRoot: 'Original page type "{type}" is not allowed on the root level for this virtual page'

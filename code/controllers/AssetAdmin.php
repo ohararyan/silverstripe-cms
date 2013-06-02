@@ -8,23 +8,25 @@
  */
 class AssetAdmin extends LeftAndMain implements PermissionProvider{
 
-	static $url_segment = 'assets';
+	private static $url_segment = 'assets';
 	
-	static $url_rule = '/$Action/$ID';
+	private static $url_rule = '/$Action/$ID';
 	
-	static $menu_title = 'Files';
+	private static $menu_title = 'Files';
 
-	public static $tree_class = 'Folder';
+	private static $tree_class = 'Folder';
 	
 	/**
+	 * @config
 	 * @see Upload->allowedMaxFileSize
 	 * @var int
 	 */
-	public static $allowed_max_file_size;
+	private static $allowed_max_file_size;
 	
-	public static $allowed_actions = array(
+	private static $allowed_actions = array(
 		'addfolder',
 		'delete',
+		'AddForm',
 		'DeleteItemsForm',
 		'getsubtree',
 		'movemarked',
@@ -95,7 +97,7 @@ JS
 		// Don't filter list when a detail view is requested,
 		// to avoid edge cases where the filtered list wouldn't contain the requested
 		// record due to faulty session state (current folder not always encoded in URL, see #7408).
-		if(!$folder->ID && ($this->request->param('ID') == 'field')) {
+		if(!$folder->ID && $this->request->requestVar('ID') === null && ($this->request->param('ID') == 'field')) {
 			return $list;
 		}
 
@@ -120,11 +122,17 @@ JS
 
 		// Category filter
 		if(isset($params['AppCategory'])) {
-			$exts = File::$app_categories[$params['AppCategory']];
+			if(isset(File::config()->app_categories[$params['AppCategory']])) {
+				$exts = File::config()->app_categories[$params['AppCategory']];
+			} else {
+				$exts = array();
+			}
 			$categorySQLs = array();
 			foreach($exts as $ext) $categorySQLs[] = '"File"."Name" LIKE \'%.' . $ext . '\'';
 			// TODO Use DataList->filterAny() once OR connectives are implemented properly
-			$list = $list->where('(' . implode(' OR ', $categorySQLs) . ')');
+			if (count($categorySQLs) > 0) {
+				$list = $list->where('(' . implode(' OR ', $categorySQLs) . ')');
+			}
 		}
 
 		return $list;
@@ -150,7 +158,7 @@ JS
 			GridFieldLevelup::create($folder->ID)->setLinkSpec('admin/assets/show/%d')
 		);
 
-		$gridField = new GridField('File', $title, $this->getList(), $gridFieldConfig);
+		$gridField = GridField::create('File', $title, $this->getList(), $gridFieldConfig);
 		$columns = $gridField->getConfig()->getComponentByType('GridFieldDataColumns');
 		$columns->setDisplayFields(array(
 			'StripThumbnail' => '',
@@ -221,11 +229,11 @@ JS
 				$tabList = new Tab('ListView', _t('AssetAdmin.ListView', 'List View')),
 				$tabTree = new Tab('TreeView', _t('AssetAdmin.TreeView', 'Tree View'))
 			);
-			$tabList->addExtraClass("content-listview");
-			$tabTree->addExtraClass("content-treeview");
+			$tabList->addExtraClass("content-listview cms-tabset-icon list");
+			$tabTree->addExtraClass("content-treeview cms-tabset-icon tree");
 			if($fields->Count() && $folder->exists()) {
 				$tabs->push($tabDetails = new Tab('DetailsView', _t('AssetAdmin.DetailsView', 'Details')));
-				$tabDetails->addExtraClass("content-galleryview");
+				$tabDetails->addExtraClass("content-galleryview cms-tabset-icon edit");
 				foreach($fields as $field) {
 					$fields->removeByName($field->getName());
 					$tabDetails->push($field);
@@ -253,7 +261,7 @@ JS
 			// TODO Replace with lazy loading on client to avoid performance hit of rendering potentially unused views
 			new LiteralField(
 				'Tree',
-				$treeField->createTag(
+				FormField::create_tag(
 					'div', 
 					array(
 						'class' => 'cms-tree', 
@@ -463,7 +471,7 @@ JS
 		$record->write();
 		
 		mkdir($record->FullPath);
-		chmod($record->FullPath, Filesystem::$file_create_mask);
+		chmod($record->FullPath, Filesystem::config()->file_create_mask);
 
 		if($parentRecord) {
 			return $this->redirect(Controller::join_links($this->Link('show'), $parentRecord->ID));
@@ -483,6 +491,7 @@ JS
 				return $folder;
 			}
 		}
+		$this->setCurrentPageID(null);
 		return new Folder();
 	}
 	

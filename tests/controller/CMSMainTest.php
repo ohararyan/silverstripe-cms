@@ -5,27 +5,64 @@
  */
 class CMSMainTest extends FunctionalTest {
 
-	static $fixture_file = 'CMSMainTest.yml';
-	
-	protected $autoFollowRedirection = false;
+	protected static $fixture_file = 'CMSMainTest.yml';
 	
 	static protected $orig = array();
 	
-	static public function set_up_once() {
-		self::$orig['CMSBatchActionHandler_batch_actions'] = CMSBatchActionHandler::$batch_actions;
-		CMSBatchActionHandler::$batch_actions = array(
-			'publish' => 'CMSBatchAction_Publish',
-			'delete' => 'CMSBatchAction_Delete',
-			'deletefromlive' => 'CMSBatchAction_DeleteFromLive',
+	function testSiteTreeHints() {
+		$cache = SS_Cache::factory('CMSMain_SiteTreeHints');
+		$cache->clean(Zend_Cache::CLEANING_MODE_ALL);
+
+		$rawHints = singleton('CMSMain')->SiteTreeHints();
+		$this->assertNotNull($rawHints);
+
+		$rawHints = preg_replace('/^"(.*)"$/', '$1', Convert::xml2raw($rawHints));
+		$hints = Convert::json2array($rawHints);
+
+		$this->assertArrayHasKey('Root', $hints);
+		$this->assertArrayHasKey('Page', $hints);
+		$this->assertArrayHasKey('All', $hints);
+
+		$this->assertArrayHasKey(
+			'CMSMainTest_ClassA',
+			$hints['All'],
+			'Global list shows allowed classes'
+		);
+
+		$this->assertArrayNotHasKey(
+			'CMSMainTest_HiddenClass',
+			$hints['All'],
+			'Global list does not list hidden classes'
+		);
+
+		$this->assertNotContains(
+			'CMSMainTest_ClassA',
+			$hints['Root']['disallowedChildren'],
+			'Limits root classes'
+		);
+
+		$this->assertContains(
+			'CMSMainTest_NotRoot',
+			$hints['Root']['disallowedChildren'],
+			'Limits root classes'
+		);
+		$this->assertNotContains(
+			'CMSMainTest_ClassA',
+			// Lenient checks because other modules might influence state
+			(array)@$hints['Page']['disallowedChildren'],
+			'Does not limit types on unlimited parent'
+		);
+		$this->assertContains(
+			'Page',
+			$hints['CMSMainTest_ClassA']['disallowedChildren'], 
+			'Limited parent lists disallowed classes'
+		);
+		$this->assertNotContains(
+			'CMSMainTest_ClassB',
+			$hints['CMSMainTest_ClassA']['disallowedChildren'], 
+			'Limited parent omits explicitly allowed classes in disallowedChildren'
 		);
 		
-		parent::set_up_once();
-	}
-	
-	static public function tear_down_once() {
-		CMSBatchActionHandler::$batch_actions = self::$orig['CMSBatchActionHandler_batch_actions'];
-		
-		parent::tear_down_once();
 	}
 	
 	/**
@@ -37,15 +74,17 @@ class CMSMainTest extends FunctionalTest {
 		$this->session()->inst_set('loggedInAs', $this->idFromFixture('Member', 'admin'));
 		
 		$response = $this->get('admin/pages/publishall?confirm=1');
-
 		$this->assertContains(
 			'Done: Published 30 pages',
 			$response->getBody()
 		);
+
+		$actions = CMSBatchActionHandler::config()->batch_actions;
 	
 		// Some modules (e.g., cmsworkflow) will remove this action
-		if(isset(CMSBatchActionHandler::$batch_actions['publish'])) {
-			$response = Director::test('admin/pages/batchactions/publish', array('csvIDs' => implode(',', array($page1->ID, $page2->ID)), 'ajax' => 1), $this->session());
+		$actions = CMSBatchActionHandler::config()->batch_actions;
+		if(isset($actions['publish'])) {
+			$response = $this->get('admin/pages/batchactions/publish?ajax=1&csvIDs=' . implode(',', array($page1->ID, $page2->ID)));
 			$responseData = Convert::json2array($response->getBody());
 			$this->assertArrayHasKey($page1->ID, $responseData['modified']);
 			$this->assertArrayHasKey($page2->ID, $responseData['modified']);
@@ -75,25 +114,26 @@ class CMSMainTest extends FunctionalTest {
 	 * Test publication of one of every page type
 	 */
 	public function testPublishOneOfEachKindOfPage() {
-		return;
-		$classes = ClassInfo::subclassesFor("SiteTree");
-		array_shift($classes);
+		$this->markTestIncomplete();
+
+		// $classes = ClassInfo::subclassesFor("SiteTree");
+		// array_shift($classes);
 	
-		foreach($classes as $class) {
-			$page = new $class();
-			if($class instanceof TestOnly) continue;
+		// foreach($classes as $class) {
+		// 	$page = new $class();
+		// 	if($class instanceof TestOnly) continue;
 			
-			$page->Title = "Test $class page";
+		// 	$page->Title = "Test $class page";
 			
-			$page->write();
-			$this->assertEquals("Test $class page", DB::query("SELECT \"Title\" FROM \"SiteTree\" WHERE \"ID\" = $page->ID")->value());
+		// 	$page->write();
+		// 	$this->assertEquals("Test $class page", DB::query("SELECT \"Title\" FROM \"SiteTree\" WHERE \"ID\" = $page->ID")->value());
 			
-			$page->doPublish();
-			$this->assertEquals("Test $class page", DB::query("SELECT \"Title\" FROM \"SiteTree_Live\" WHERE \"ID\" = $page->ID")->value());
+		// 	$page->doPublish();
+		// 	$this->assertEquals("Test $class page", DB::query("SELECT \"Title\" FROM \"SiteTree_Live\" WHERE \"ID\" = $page->ID")->value());
 			
-			// Check that you can visit the page
-			$this->get($page->URLSegment);
-		}
+		// 	// Check that you can visit the page
+		// 	$this->get($page->URLSegment);
+		// }
 	}
 	
 	/**
@@ -121,19 +161,20 @@ class CMSMainTest extends FunctionalTest {
 	public function testCanPublishPageWithUnpublishedParentWithStrictHierarchyOff() {
 		$this->logInWithPermission('ADMIN');
 		
-		SiteTree::set_enforce_strict_hierarchy(true);
+		Config::inst()->update('SiteTree', 'enforce_strict_hierarchy', true);
 		$parentPage = $this->objFromFixture('Page','page3');
 		$childPage = $this->objFromFixture('Page','page1');
 		
 		$parentPage->doUnpublish();
 		$childPage->doUnpublish();
 
-		$this->assertContains(
+		$actions = $childPage->getCMSActions()->dataFields();
+		$this->assertArrayHasKey(
 			'action_publish',
-			$childPage->getCMSActions()->column('Name'),
+			$actions,
 			'Can publish a page with an unpublished parent with strict hierarchy off'
 		);
-		SiteTree::set_enforce_strict_hierarchy(false);
+		Config::inst()->update('SiteTree', 'enforce_strict_hierarchy', false);
 	}	
 	
 	/**
@@ -193,6 +234,9 @@ class CMSMainTest extends FunctionalTest {
 	}
 	
 	public function testCreationOfTopLevelPage(){
+		$origFollow = $this->autoFollowRedirection;
+		$this->autoFollowRedirection = false;
+
 		$cmsUser = $this->objFromFixture('Member', 'allcmssectionsuser');
 		$rootEditUser = $this->objFromFixture('Member', 'rootedituser');
 
@@ -220,9 +264,14 @@ class CMSMainTest extends FunctionalTest {
 		$this->assertContains('/show/',$location, 'Must redirect to /show/ the new page');
 		// TODO Logout
 		$this->session()->inst_set('loggedInAs', NULL);
+
+		$this->autoFollowRedirection = $origFollow;
 	}
 
 	public function testCreationOfRestrictedPage(){
+		$origFollow = $this->autoFollowRedirection;
+		$this->autoFollowRedirection = false;
+
 		$adminUser = $this->objFromFixture('Member', 'admin');
 		$adminUser->logIn();
 
@@ -258,6 +307,8 @@ class CMSMainTest extends FunctionalTest {
 		);
 
 		$this->session()->inst_set('loggedInAs', NULL);
+
+		$this->autoFollowRedirection = $origFollow;
 	}
 
 	public function testBreadcrumbs() {
@@ -280,9 +331,17 @@ class CMSMainTest extends FunctionalTest {
 }
 
 class CMSMainTest_ClassA extends Page implements TestOnly {
-	static $allowed_children = array('CMSMainTest_ClassB');
+	private static $allowed_children = array('CMSMainTest_ClassB');
 }
 
 class CMSMainTest_ClassB extends Page implements TestOnly {
+	
+}
+
+class CMSMainTest_NotRoot extends Page implements TestOnly {
+	private static $can_be_root = false;
+}
+
+class CMSMainTest_HiddenClass extends Page implements TestOnly, HiddenClass {
 	
 }

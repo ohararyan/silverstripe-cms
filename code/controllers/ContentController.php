@@ -22,7 +22,7 @@ class ContentController extends Controller {
 
 	protected $dataRecord;
 
-	public static $allowed_actions = array(
+	private static $allowed_actions = array(
 		'successfullyinstalled',
 		'deleteinstallfiles' // secured through custom code
 	);
@@ -119,7 +119,7 @@ class ContentController extends Controller {
 		
 		// Use theme from the site config
 		if(($config = SiteConfig::current_site_config()) && $config->Theme) {
-			SSViewer::set_theme($config->Theme);
+			Config::inst()->update('SSViewer', 'theme', $config->Theme);
 		}
 	}
 	
@@ -137,7 +137,7 @@ class ContentController extends Controller {
 		// If nested URLs are enabled, and there is no action handler for the current request then attempt to pass
 		// control to a child controller. This allows for the creation of chains of controllers which correspond to a
 		// nested URL.
-		if($action && SiteTree::nested_urls() && !$this->hasAction($action)) {
+		if($action && SiteTree::config()->nested_urls && !$this->hasAction($action)) {
 			// See ModelAdController->getNestedController() for similar logic
 			if(class_exists('Translatable')) Translatable::disable_locale_filter();
 			// look for a page with this URLSegment
@@ -301,7 +301,12 @@ class ContentController extends Controller {
 				$surname = Convert::raw2xml($member->Surname);
 				$logInMessage = _t('ContentController.LOGGEDINAS', 'Logged in as') ." {$firstname} {$surname} - <a href=\"Security/logout\">". _t('ContentController.LOGOUT', 'Log out'). "</a>";
 			} else {
-				$logInMessage = _t('ContentController.NOTLOGGEDIN', 'Not logged in') ." - <a href=\"Security/login\">". _t('ContentController.LOGIN', 'Login') ."</a>";
+				$logInMessage = sprintf(
+					'%s - <a href="%s">%s</a>' ,
+					_t('ContentController.NOTLOGGEDIN', 'Not logged in') ,
+					Config::inst()->get('Security', 'login_url'),
+					_t('ContentController.LOGIN', 'Login') ."</a>"
+				);
 			}
 			$viewPageIn = _t('ContentController.VIEWPAGEIN', 'View Page in:');
 			
@@ -341,18 +346,6 @@ HTML;
 	}
 
 	/**
-	 * Returns the xml:lang and lang attributes.
-	 * 
-	 * @deprecated 2.5 Use ContentLocale() instead and write attribute names suitable to XHTML/HTML
-	 * templates directly in the template.
-	 */
-	public function LangAttributes() {
-		Deprecation::notice('2.5', 'Use ContentLocale() instead and write attribute names suitable to XHTML/HTML instead.');
-		$locale = $this->ContentLocale();
-		return "xml:lang=\"$locale\" lang=\"$locale\"";	
-	}
-	
-	/**
 	 * Returns an RFC1766 compliant locale string, e.g. 'fr-CA'.
 	 * Inspects the associated {@link dataRecord} for a {@link SiteTree->Locale} value if present,
 	 * and falls back to {@link Translatable::get_current_locale()} or {@link i18n::default_locale()},
@@ -366,7 +359,7 @@ HTML;
 	public function ContentLocale() {
 		if($this->dataRecord && $this->dataRecord->hasExtension('Translatable')) {
 			$locale = $this->dataRecord->Locale;
-		} elseif(class_exists('Translatable') && Object::has_extension('SiteTree', 'Translatable')) {
+		} elseif(class_exists('Translatable') && SiteTree::has_extension('Translatable')) {
 			$locale = Translatable::get_current_locale();
 		} else {
 			$locale = i18n::get_locale();
@@ -379,6 +372,10 @@ HTML;
 	 * This action is called by the installation system
 	 */
 	public function successfullyinstalled() {
+		// Return 410 Gone if this site is not actually a fresh installation
+		if (!file_exists(BASE_PATH . '/install.php')) {
+			$this->httpError(410);
+		}
 		// The manifest should be built by now, so it's safe to publish the 404 page
 		$fourohfour = Versioned::get_one_by_stage('ErrorPage', 'Stage', '"ErrorCode" = 404');
 		if($fourohfour) {
