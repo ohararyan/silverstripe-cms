@@ -76,12 +76,15 @@ sl:
     ACCESS_HELP: 'Dovoli vpogled  sklop z drevesno strukturo in vsebino. Pravice za ogled in urejanje je možno urejati prek dropdown-seznamov za vsako posamezno stran, ali pa ločeno v sklopu Nastavitve pravic za upravljanje z vsebino (Content permissions). '
     AddNew: 'Dodaj novo stran'
     AddNewButton: 'Dodaj novo'
+    AddPageRestriction: 'Note: Some page types are not allowed for this selection'
     ChoosePageParentMode: 'Izberite mesto, kjer želite ustvariti novo stran'
     ChoosePageType: 'Izberi tip strani'
     Create: Ustvari
     DELETE: 'Izbriši z osnutka spletnega mesta'
     DELETEFP: 'Izbriši z objavljenega spletnega mesta'
     DESCREMOVED: 'and {count} descendants'
+    DUPLICATED: 'Duplicated ''{title}'' successfully'
+    DUPLICATEDWITHCHILDREN: 'Duplicated ''{title}'' and children successfully'
     EMAIL: E-naslov
     EditTree: 'Uredi drevesno strukturo'
     ListFiltered: 'Filtered list.'
@@ -96,16 +99,16 @@ sl:
     PUBALLFUN2: 'Rezultat klika tega gumba bo enak, kot če bi kliknili "Objavi" na vsaki posamezni strani. Namenjen je uporabi pri večjih spremembah vsebine, kot na primer ob začetku postavljanja spletnega mesta.'
     PUBPAGES: 'Opravljeno: Objavljenih je {count} strani'
     PageAdded: 'Stran je bila uspešno ustvarjena'
-    REMOVED: 'Vsebina, odstranjena iz objave: ''%s''%s'
+    REMOVED: 'Deleted ''{title}''{description} from live site'
     REMOVEDPAGE: '''{title}'' je odstranjen z objavljenega spletnega mesta. '
     REMOVEDPAGEFROMDRAFT: 'Vsebina, odstranjena iz osnutka spletnega mesta: ''%s'''
     RESTORE: Obnovi
     RESTORED: 'Restored ''{title}'' successfully'
     ROLLBACK: 'Ponastavi na to različico'
-    ROLLEDBACKPUB: 'Povrnjeno na objavljeno različico. Številka nove različice je #{version}.'
-    ROLLEDBACKVERSION: 'Preklopljeno na različico #%d. Številka nove različice je #%d'
+    ROLLEDBACKPUBv2: 'Rolled back to published version.'
+    ROLLEDBACKVERSIONv2: 'Rolled back to version #%d.'
     SAVE: Shrani
-    SAVEDRAFT: 'Shrani osnutek'
+    SAVEDRAFT: 'Save draft'
     TabContent: Vsebina
     TabHistory: Zgodovina
     TabSettings: Nastavitve
@@ -129,6 +132,7 @@ sl:
     SHOWUNPUBLISHED: 'Pokaži neobjavljeno različico'
     SHOWVERSION: 'Pokaži različico'
     VIEW: view
+    VIEWINGLATEST: 'Currently viewing the latest version.'
     VIEWINGVERSION: 'Trenutno prikazana različica {version}.'
   CMSPageHistoryController_versions.ss:
     AUTHOR: Avtor
@@ -167,6 +171,7 @@ sl:
     ARCHIVEDSITE: 'Predogled različice'
     ARCHIVEDSITEFROM: 'Arhivirana različica iz'
     CMS: CMS
+    DRAFT: Draft
     DRAFTSITE: 'Osnutek spletnega mesta'
     DRAFT_SITE_ACCESS_RESTRICTION: 'Za ogled osnutka vsebine ali arhiva tega spletnega mesta, se morate prijaviti s podatki za dostop do CMS-vmesnika.<a href="%s">Nazaj na objavljeno različico spletnega mesta.</a>'
     Email: E-naslov
@@ -178,10 +183,11 @@ sl:
     LOGIN: Prijava
     LOGOUT: Odjava
     NOTLOGGEDIN: Neprijavljen-a
+    PUBLISHED: Published
     PUBLISHEDSITE: 'Objavljeno spletno mesto'
     Password: Geslo
     PostInstallTutorialIntro: 'To spletno mesto je poenostavljena različica spletnega mesta SilverStripe 3. Za razširjeno različico, prosim, obiščite {link}.'
-    StartEditing: 'Za urejanje vsebine vašega spletnega mesta odprite <a href="{link}">CMS</a>.'
+    StartEditing: 'You can start editing your content by opening <a href="{link}">the CMS</a>.'
     UnableDeleteInstall: 'Namestitvenih datotek ni bilo mogoče izbrisati. Prosim, spodnje datoteke izbrišite ročno.'
     VIEWPAGEIN: 'Ogled strani v:'
   ErrorPage:
@@ -251,6 +257,10 @@ sl:
     ReportTitle: Naslov
   ReportAdminForm:
     FILTERBY: 'Filtriraj po'
+  SITETREE:
+    VIRTUALPAGEDRAFTWARNING: 'Please publish the linked page in order to publish the virtual page'
+    VIRTUALPAGEWARNING: 'Please choose a linked page and save first in order to publish this page'
+    VIRTUALPAGEWARNINGSETTINGS: 'Please choose a linked page in the main content fields in order to publish'
   SearchForm:
     GO: Pojdi
     SEARCH: Išči
@@ -267,6 +277,8 @@ sl:
     OtherGroupTitle: Drugo
     ParameterLiveCheckbox: 'Preveri na objavljenem spletnem mestu'
     REPEMPTY: 'Poročilo {title} je prazno.'
+  SilverStripeNavigator:
+    ARCHIVED: Archived
   SilverStripeNavigatorLink:
     ShareInstructions: 'Za posredovanje vsebine med tema dvema stranema, kopirajte povezavo in jo spodaj prilepite.'
     ShareLink: 'Posreduj povezavo'
@@ -299,7 +311,9 @@ sl:
     APPEARSVIRTUALPAGES: 'This content also appears on the virtual pages in the {title} sections.'
     BUTTONCANCELDRAFT: 'Prekliči spremembe osnutka'
     BUTTONCANCELDRAFTDESC: 'Izbriši osnutek in ponastavi na trenutno objavljeno stran'
-    BUTTONSAVEPUBLISH: 'Shrani in objavi'
+    BUTTONPUBLISHED: Published
+    BUTTONSAVED: Saved
+    BUTTONSAVEPUBLISH: 'Save & publish'
     BUTTONUNPUBLISH: 'Umakni iz objave'
     BUTTONUNPUBLISHDESC: 'Umakni to stran iz objave'
     CREATED: 'Datum nastanka'
@@ -324,9 +338,12 @@ sl:
     EDIT_ALL_DESCRIPTION: 'Urejanje vseh strani'
     EDIT_ALL_HELP: 'Možnost urejanja katerekoli strani na spletnem mestu, ne glede na nastavitve v sklopu "Dostop". Zahteva dovoljenje za dostop do vsebine spletnega mesta.'
     Editors: 'Skupine urednikov'
+    GroupPlaceholder: 'Click to select group'
     HASBROKENLINKS: 'Ta stran ima neveljavne povezave.'
     HTMLEDITORTITLE: Vsebina
     INHERIT: 'Privzemi od nadrejene strani'
+    LASTPUBLISHED: 'Last published'
+    LASTSAVED: 'Last saved'
     LASTUPDATED: 'Nazadnje urejeno'
     LINKCHANGENOTE: 'Sprememba URL-naslova te strani bo povzročila spremembo URL-naslovov do vseh podrejenih strani.'
     MENUTITLE: 'Naziv navigacije'
@@ -337,7 +354,9 @@ sl:
     MODIFIEDONDRAFTHELP: 'Stran vsebuje še neobjavljene spremembe.'
     MODIFIEDONDRAFTSHORT: Modified
     MetadataToggle: Metapodatki
-    OBSOLETECLASS: 'This page is of obsolete type {type}. Saving will reset it''s type and you may lose data'
+    MoreOptions: 'More options'
+    NOTPUBLISHED: 'Not published'
+    OBSOLETECLASS: 'This page is of obsolete type {type}. Saving will reset its type and you may lose data'
     PAGELOCATION: 'Lokacija strani'
     PAGETITLE: 'Ime strani'
     PAGETYPE: 'Tip strani'
@@ -366,7 +385,7 @@ sl:
     URLSegment: 'URL naslov strani'
     VIEWERGROUPS: 'Skupine obiskovalcev'
     VIEW_ALL_DESCRIPTION: 'Prikaz vse strani'
-    VIEW_ALL_HELP: 'Možnost prikaza katerekoli strani na spletnem mestu, ne glede na nastavitve v sklopu "Dostop". Zahteva dovoljenje za dostop do vsebine spletnega mesta.'
+    VIEW_ALL_HELP: 'Ability to view any page on the site, regardless of the settings on the Access tab.  Requires the "Access to ''Pages'' section" permission'
     VIEW_DRAFT_CONTENT: Predogled.
     VIEW_DRAFT_CONTENT_HELP: 'Ogled osnutka vsebine za uporabnike brez dostopa do vmesnika.'
     Viewers: 'Skupine obiskovalcev (viewers)'
@@ -376,6 +395,7 @@ sl:
     many_many_ImageTracking: 'Spremljanje slik'
     many_many_LinkTracking: 'Spremljanje povezav'
   SiteTreeURLSegmentField:
+    EMPTY: 'Please enter a URL Segment or click cancel'
     HelpChars: 'Posebni znaki so samodejno spremenjeni ali odstranjeni.'
   StaticExporter:
     BASEURL: 'Osnovni URL'
@@ -397,14 +417,20 @@ sl:
     VIEWPREVIOUS: Prejšnja
   TreeTools:
     DisplayLabel: 'Display:'
+  URLSegmentField:
+    Cancel: Cancel
+    Edit: Edit
+    OK: OK
   ViewArchivedEmail.ss:
     CANACCESS: 'Do arhvirane različice spletnega mesta lahko dostopate na naslovu:'
     HAVEASKED: 'Za vpogled v vsebino našega spletnega mesta ste zaprosili'
   VirtualPage:
-    CHOOSE: 'Izberite stran, na katero bo vodila povezava'
+    CHOOSE: 'Linked Page'
     DESCRIPTION: 'Displays the content of another page'
-    EDITCONTENT: 'za urejanje vsebine kliknite tukaj'
+    EDITCONTENT: 'Edit content on linked page'
+    EditLink: edit
     HEADER: 'To je navidezna stran'
+    HEADERWITHLINK: 'This is a virtual page copying content from "{title}" ({link})'
     PLURALNAME: 'Virtualne strani'
     PageTypNotAllowedOnRoot: 'Original page type "{type}" is not allowed on the root level for this virtual page'
     SINGULARNAME: 'Virtualna stran'
