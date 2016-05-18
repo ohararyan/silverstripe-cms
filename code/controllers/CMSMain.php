@@ -385,6 +385,16 @@ class CMSMain extends LeftAndMain implements CurrentPageIdentifier, PermissionPr
 	}
 
 	/**
+	 * Returns SiteTree config and checks if we're showing filters or not in admin
+	 * @return boolean
+	 */
+	public function getDisplayFilters() {
+		$config = Config::inst()->get('SiteTree', 'show_filters');
+		if ($config) return $config;
+		return false;
+	}
+
+	/**
 	 * Returns a sorted array suitable for a dropdown with pagetypes and their translated name
 	 *
 	 * @return array
